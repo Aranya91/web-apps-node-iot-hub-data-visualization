@@ -1,31 +1,31 @@
 $(document).ready(function () {
   var timeData = [],
-    temperatureData = [],
-    humidityData = [];
+  CurrentPositionLat = [],
+  CurrentPositionLong = [];
   var data = {
     labels: timeData,
     datasets: [
       {
         fill: false,
-        label: 'Temperature',
-        yAxisID: 'Temperature',
+        label: 'Latitude',
+        yAxisID: 'Latitude',
         borderColor: "rgba(255, 204, 0, 1)",
         pointBoarderColor: "rgba(255, 204, 0, 1)",
         backgroundColor: "rgba(255, 204, 0, 0.4)",
         pointHoverBackgroundColor: "rgba(255, 204, 0, 1)",
         pointHoverBorderColor: "rgba(255, 204, 0, 1)",
-        data: temperatureData
+        data: CurrentPositionLat
       },
       {
         fill: false,
-        label: 'Humidity',
-        yAxisID: 'Humidity',
+        label: 'Longitude',
+        yAxisID: 'Longitude',
         borderColor: "rgba(24, 120, 240, 1)",
         pointBoarderColor: "rgba(24, 120, 240, 1)",
         backgroundColor: "rgba(24, 120, 240, 0.4)",
         pointHoverBackgroundColor: "rgba(24, 120, 240, 1)",
         pointHoverBorderColor: "rgba(24, 120, 240, 1)",
-        data: humidityData
+        data: CurrentPositionLong
       }
     ]
   }
@@ -33,23 +33,23 @@ $(document).ready(function () {
   var basicOption = {
     title: {
       display: true,
-      text: 'Temperature & Humidity Real-time Data',
+      text: 'Vehicle position latitude and longitude Real-time Data',
       fontSize: 36
     },
     scales: {
       yAxes: [{
-        id: 'Temperature',
+        id: 'Latitude',
         type: 'linear',
         scaleLabel: {
-          labelString: 'Temperature(C)',
+          labelString: 'Latitude',
           display: true
         },
         position: 'left',
       }, {
-          id: 'Humidity',
+          id: 'Longitude',
           type: 'linear',
           scaleLabel: {
-            labelString: 'Humidity(%)',
+            labelString: 'Longitude',
             display: true
           },
           position: 'right'
@@ -66,7 +66,7 @@ $(document).ready(function () {
     options: basicOption
   });
 
-  var ws = new WebSocket('wss://' + location.host);
+  var ws = new WebSocket('ws://' + location.host);
   ws.onopen = function () {
     console.log('Successfully connect WebSocket');
   }
@@ -74,24 +74,24 @@ $(document).ready(function () {
     console.log('receive message' + message.data);
     try {
       var obj = JSON.parse(message.data);
-      if(!obj.time || !obj.temperature) {
+      if(!obj.EventTimestamp || !obj.CurrentPositionLat) {
         return;
       }
-      timeData.push(obj.time);
-      temperatureData.push(obj.temperature);
+      timeData.push(obj.EventTimestamp);
+      CurrentPositionLat.push(obj.CurrentPositionLat);
       // only keep no more than 50 points in the line chart
       const maxLen = 50;
       var len = timeData.length;
       if (len > maxLen) {
         timeData.shift();
-        temperatureData.shift();
+        CurrentPositionLat.shift();
       }
 
-      if (obj.humidity) {
-        humidityData.push(obj.humidity);
+      if (obj.CurrentPositionLong) {
+        CurrentPositionLong.push(obj.CurrentPositionLong);
       }
-      if (humidityData.length > maxLen) {
-        humidityData.shift();
+      if (CurrentPositionLong.length > maxLen) {
+        CurrentPositionLong.shift();
       }
 
       myLineChart.update();
